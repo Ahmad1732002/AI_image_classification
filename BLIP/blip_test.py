@@ -68,6 +68,8 @@ for epoch in range(50):
     optimizer.zero_grad()
 
 # prepare image for the model
+example=dataset[0]
+image=example["image"]
 inputs = processor(images=image, return_tensors="pt").to(device)
 pixel_values = inputs.pixel_values
 
