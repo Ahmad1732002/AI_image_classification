@@ -8,7 +8,7 @@ subprocess.run(transformers_command, shell=True)
 
 
 
-dataset = pd.read_csv('./csvFile.csv')
+dataset = pd.read_csv('csvFile')
 
 from torch.utils.data import Dataset, DataLoader
 
@@ -68,13 +68,3 @@ for epoch in range(50):
 
     optimizer.step()
     optimizer.zero_grad()
-
-# # prepare image for the model
-# example=dataset[0]
-# image=example["image"]
-# inputs = processor(images=image, return_tensors="pt").to(device)
-# pixel_values = inputs.pixel_values
-
-# generated_ids = model.generate(pixel_values=pixel_values, max_length=50)
-# generated_caption = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-# print(generated_caption)
