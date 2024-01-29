@@ -2,8 +2,8 @@ import os
 import pandas as pd
 
 # Path to your 'ai' folder
-train_ai_folder_path = './imagenet_ai_0419_biggan/train/ai'
-train_natural_folder_path= './imagenet_ai_0419_biggan/train/nature'
+train_ai_folder_path = 'imagenet_ai_0419_biggan/train/ai'
+train_natural_folder_path= 'imagenet_ai_0419_biggan/train/nature'
 
 # Step 1: List all images in the train ai and nature folder
 ai_image_files = [os.path.join(train_ai_folder_path, file) for file in os.listdir(train_ai_folder_path)]
