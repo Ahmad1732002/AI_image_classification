@@ -1,6 +1,7 @@
 import subprocess
 import pandas as pd
 from PIL import Image
+from tqdm import tqdm
 
 # Install the "transformers" package
 transformers_command = "pip install git+https://github.com/huggingface/transformers.git@main"
@@ -8,8 +9,9 @@ subprocess.run(transformers_command, shell=True)
 
 
 
-training_dataset = pd.read_csv('csvfile_train')
-testing_dataset=pd.read_csv('csvfile_test')
+training_dataset = pd.read_csv('train_data_csv')
+validation_dataset = training_dataset.sample(frac=0.2)
+testing_dataset=pd.read_csv('test_data_csv')
 
 from torch.utils.data import Dataset, DataLoader
 
@@ -41,6 +43,10 @@ model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-capt
 train_dataset = ImageCaptioningDataset(training_dataset, processor)
 train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=2)
 
+validation_dataset = ImageCaptioningDataset(validation_dataset, processor)
+validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=2)
+
+
 test_dataset = ImageCaptioningDataset(testing_dataset, processor)
 test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=2)
 
@@ -67,6 +73,8 @@ def calculate_accuracy(model, dataloader, device):
 
 import torch
 
+
+
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -74,9 +82,33 @@ model.to(device)
 
 model.train()
 
+
+def sample_inference(model, processor, dataset, device, num_samples=2):
+    # Randomly select a few samples from the dataset
+    sample_indices = random.sample(range(len(dataset)), num_samples)
+    sample_data = [dataset[i] for i in sample_indices]
+
+    # Process images and texts
+    images = [Image.open(item['image']).convert('RGB') for item in sample_data]
+    pixel_values = processor(images=images, return_tensors="pt").pixel_values.to(device)
+
+    texts = [item['text'] for item in sample_data]
+    input_ids = processor(text=texts, return_tensors="pt", padding=True, truncation=True).input_ids
+
+    # Generate predictions
+    outputs = model.generate(pixel_values=pixel_values)
+    preds = processor.batch_decode(outputs, skip_special_tokens=True)
+    refs = [text.strip() for text in texts]
+
+    return preds, refs
+
 for epoch in range(50):
     print("Epoch:", epoch)  
-    for idx, batch in enumerate(train_dataloader):
+
+    progress_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader), desc="Training")
+
+    for idx, batch in progress_bar:
+        
         input_ids = batch.pop("input_ids").to(device)
         pixel_values = batch.pop("pixel_values").to(device)
 
@@ -86,13 +118,25 @@ for epoch in range(50):
         
         loss = outputs.loss
 
-        print("Loss:", loss.item())
+        
+
+        optimizer.zero_grad()
 
         loss.backward()
 
         optimizer.step()
-        optimizer.zero_grad()
-    train_accuracy = calculate_accuracy(model, train_dataloader, device)
+
+        progress_bar.set_postfix(loss=loss.item())
+
+       
+     # Sample inference at the end of each epoch
+    sample_preds, sample_refs = sample_inference(model, processor, train_dataset, device)
+    for pred, ref in zip(sample_preds, sample_refs):
+        print(f"Sample Prediction: {pred}\nReference: {ref}")
+
+
+
+    train_accuracy = calculate_accuracy(model, validation_dataloader, device)
     print(f"Training Accuracy after epoch {epoch}: {train_accuracy}")
 
 
@@ -127,4 +171,5 @@ def test_model_and_calculate_accuracy(model, dataloader, processor, device):
 # Test the model and calculate accuracy
 test_accuracy = test_model_and_calculate_accuracy(model, test_dataloader, processor, device)
 print(f"Test Accuracy (based on exact matches): {test_accuracy:.2f}")
+
 
