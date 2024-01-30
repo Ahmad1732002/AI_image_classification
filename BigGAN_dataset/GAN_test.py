@@ -27,8 +27,13 @@ class ImageCaptioningDataset(Dataset):
         img_path = self.dataset.iloc[idx]['image']
         text = self.dataset.iloc[idx]['text']
 
-        # Load the image
-        image = Image.open(img_path).convert('RGB')
+        try:
+            image = Image.open(img_path).convert('RGB')
+        except (IOError, FileNotFoundError):
+            print(f"Error loading image: {img_path}")
+            return None
+
+    
 
         encoding = self.processor(images=image, text=text, padding="max_length", return_tensors="pt")
         # remove batch dimension
@@ -108,6 +113,9 @@ for epoch in range(50):
     progress_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader), desc="Training")
 
     for idx, batch in progress_bar:
+
+        if batch is None:
+            continue
         
         input_ids = batch.pop("input_ids").to(device)
         pixel_values = batch.pop("pixel_values").to(device)
