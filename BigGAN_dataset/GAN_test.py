@@ -9,9 +9,9 @@ subprocess.run(transformers_command, shell=True)
 
 
 
-training_dataset = pd.read_csv('train_data_csv')
+training_dataset = pd.read_csv('validated_train_data_csv')
 validation_dataset = training_dataset.sample(frac=0.2)
-testing_dataset=pd.read_csv('test_data_csv')
+testing_dataset=pd.read_csv('validated_test_data_csv')
 
 from torch.utils.data import Dataset, DataLoader
 
@@ -27,14 +27,9 @@ class ImageCaptioningDataset(Dataset):
         img_path = self.dataset.iloc[idx]['image']
         text = self.dataset.iloc[idx]['text']
 
-        try:
-            image = Image.open(img_path).convert('RGB')
-        except (IOError, FileNotFoundError):
-            print(f"Error loading image: {img_path}")
-            return None
-
+      
+        image = Image.open(img_path).convert('RGB')
     
-
         encoding = self.processor(images=image, text=text, padding="max_length", return_tensors="pt")
         # remove batch dimension
         encoding = {k:v.squeeze() for k,v in encoding.items()}
@@ -49,11 +44,11 @@ train_dataset = ImageCaptioningDataset(training_dataset, processor)
 train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=2)
 
 validation_dataset = ImageCaptioningDataset(validation_dataset, processor)
-validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=2)
+validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=128)
 
 
 test_dataset = ImageCaptioningDataset(testing_dataset, processor)
-test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=2)
+test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=128)
 
 
 def calculate_accuracy(model, dataloader, device):
@@ -107,15 +102,12 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
 
     return preds, refs
 
-for epoch in range(50):
+for epoch in range(1):
     print("Epoch:", epoch)  
 
     progress_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader), desc="Training")
 
     for idx, batch in progress_bar:
-
-        if batch is None:
-            continue
         
         input_ids = batch.pop("input_ids").to(device)
         pixel_values = batch.pop("pixel_values").to(device)
