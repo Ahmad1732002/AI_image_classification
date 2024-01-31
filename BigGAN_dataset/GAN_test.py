@@ -41,14 +41,14 @@ processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base
 model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
 train_dataset = ImageCaptioningDataset(training_dataset, processor)
-train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=2)
+train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=8)
 
 validation_dataset = ImageCaptioningDataset(validation_dataset, processor)
-validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=128)
+validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=8)
 
 
 test_dataset = ImageCaptioningDataset(testing_dataset, processor)
-test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=128)
+test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=8)
 
 
 def calculate_accuracy(model, dataloader, device):
@@ -109,7 +109,8 @@ for epoch in range(1):
 
     for idx, batch in progress_bar:
         
-        input_ids = batch.pop("input_ids").to(device)
+        input_ids = batch.pop("
+training_dataset = pd.read_csv('validated_train_data_csv')input_ids").to(device)
         pixel_values = batch.pop("pixel_values").to(device)
 
         outputs = model(input_ids=input_ids,
