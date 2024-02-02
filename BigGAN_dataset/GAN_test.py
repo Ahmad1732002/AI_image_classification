@@ -92,9 +92,10 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
     images, texts, pixel_values_list, input_ids_list = [], [], [], []
 
     for idx in sample_indices:
-        # Extract image path and text from the dataset
-        img_path = dataset.iloc[idx]['image']
-        text = dataset.iloc[idx]['text']
+        # Use the __getitem__ method of your dataset to get the data
+        data = dataset[idx]
+        img_path = data['image_path']  # Adjust this if your dataset structure is different
+        text = data['text']  # Adjust this if your dataset structure is different
 
         # Open and convert image
         image = Image.open(img_path).convert('RGB')
@@ -119,6 +120,7 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
     refs = [text.strip() for text in texts]
 
     return preds, refs
+
 
 
 for epoch in range(1):
