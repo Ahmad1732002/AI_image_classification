@@ -1,3 +1,4 @@
+import random
 import subprocess
 import pandas as pd
 from PIL import Image
@@ -41,14 +42,14 @@ processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base
 model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
 train_dataset = ImageCaptioningDataset(training_dataset, processor)
-train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=8)
+train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=32)
 
 validation_dataset = ImageCaptioningDataset(validation_dataset, processor)
-validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=8)
+validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=32)
 
 
 test_dataset = ImageCaptioningDataset(testing_dataset, processor)
-test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=8)
+test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=32)
 
 
 def calculate_accuracy(model, dataloader, device):
@@ -86,21 +87,39 @@ model.train()
 def sample_inference(model, processor, dataset, device, num_samples=2):
     # Randomly select a few samples from the dataset
     sample_indices = random.sample(range(len(dataset)), num_samples)
-    sample_data = [dataset[i] for i in sample_indices]
 
-    # Process images and texts
-    images = [Image.open(item['image']).convert('RGB') for item in sample_data]
-    pixel_values = processor(images=images, return_tensors="pt").pixel_values.to(device)
+    # Initialize lists for images, texts, and processed inputs
+    images, texts, pixel_values_list, input_ids_list = [], [], [], []
 
-    texts = [item['text'] for item in sample_data]
-    input_ids = processor(text=texts, return_tensors="pt", padding=True, truncation=True).input_ids
+    for idx in sample_indices:
+        # Extract image path and text from the dataset
+        img_path = dataset.iloc[idx]['image']
+        text = dataset.iloc[idx]['text']
 
-    # Generate predictions
-    outputs = model.generate(pixel_values=pixel_values)
-    preds = processor.batch_decode(outputs, skip_special_tokens=True)
+        # Open and convert image
+        image = Image.open(img_path).convert('RGB')
+        images.append(image)
+        texts.append(text)
+
+        # Process image and text separately
+        pixel_values = processor(images=image, return_tensors="pt").pixel_values.to(device)
+        input_ids = processor(text=text, return_tensors="pt", padding=True, truncation=True).input_ids.to(device)
+
+        # Append processed values to lists
+        pixel_values_list.append(pixel_values)
+        input_ids_list.append(input_ids)
+
+    # Generate predictions for each sample
+    preds, refs = [], []
+    for pixel_values, input_ids in zip(pixel_values_list, input_ids_list):
+        outputs = model.generate(pixel_values=pixel_values, input_ids=input_ids)
+        pred = processor.batch_decode(outputs, skip_special_tokens=True)
+        preds.extend(pred)
+
     refs = [text.strip() for text in texts]
 
     return preds, refs
+
 
 for epoch in range(1):
     print("Epoch:", epoch)  
@@ -109,8 +128,7 @@ for epoch in range(1):
 
     for idx, batch in progress_bar:
         
-        input_ids = batch.pop("
-training_dataset = pd.read_csv('validated_train_data_csv')input_ids").to(device)
+        input_ids = batch.pop("input_ids").to(device)
         pixel_values = batch.pop("pixel_values").to(device)
 
         outputs = model(input_ids=input_ids,
