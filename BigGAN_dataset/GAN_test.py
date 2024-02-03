@@ -94,7 +94,7 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
     for idx in sample_indices:
         # Use the __getitem__ method of your dataset to get the data
         data = dataset[idx]
-        img_path = data['image_path']  # Adjust this if your dataset structure is different
+        img_path = data['image']  # Adjust this if your dataset structure is different
         text = data['text']  # Adjust this if your dataset structure is different
 
         # Open and convert image
