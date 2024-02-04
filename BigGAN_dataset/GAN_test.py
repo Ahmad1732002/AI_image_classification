@@ -8,7 +8,9 @@ from tqdm import tqdm
 transformers_command = "pip install git+https://github.com/huggingface/transformers.git@main"
 subprocess.run(transformers_command, shell=True)
 
-
+#train_dataset = pd.read_csv('validated_train_data_csv')
+#training_dataset= train_dataset.sample(frac=0.1)
+#validation_dataset = train_dataset.sample(frac=0.05)
 
 training_dataset = pd.read_csv('validated_train_data_csv')
 validation_dataset = training_dataset.sample(frac=0.2)
@@ -34,6 +36,9 @@ class ImageCaptioningDataset(Dataset):
         encoding = self.processor(images=image, text=text, padding="max_length", return_tensors="pt")
         # remove batch dimension
         encoding = {k:v.squeeze() for k,v in encoding.items()}
+        encoding['image_path'] = img_path  # Add image path to the encoding
+        encoding['text'] = text  # Add text to the encoding
+        
         return encoding
 
 from transformers import AutoProcessor, BlipForConditionalGeneration
@@ -94,7 +99,8 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
     for idx in sample_indices:
         # Use the __getitem__ method of your dataset to get the data
         data = dataset[idx]
-        img_path = data['image']  # Adjust this if your dataset structure is different
+      
+        img_path = data['image_path']  # Adjust this if your dataset structure is different
         text = data['text']  # Adjust this if your dataset structure is different
 
         # Open and convert image
@@ -192,5 +198,3 @@ def test_model_and_calculate_accuracy(model, dataloader, processor, device):
 # Test the model and calculate accuracy
 test_accuracy = test_model_and_calculate_accuracy(model, test_dataloader, processor, device)
 print(f"Test Accuracy (based on exact matches): {test_accuracy:.2f}")
-
-
