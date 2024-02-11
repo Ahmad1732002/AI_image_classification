@@ -166,7 +166,11 @@ for epoch in range(1):
     train_accuracy = calculate_accuracy(model, validation_dataloader, device)
     print(f"Training Accuracy after epoch {epoch}: {train_accuracy}")
 
+# Save the fine-tuned model
+model.save_pretrained("fine_tuned_model")
 
+# Save optimizer's state_dict
+torch.save(optimizer.state_dict(), "optimizer_state.pth")
 
 #load test data and calculate accuracy 
 def test_model_and_calculate_accuracy(model, dataloader, processor, device):
