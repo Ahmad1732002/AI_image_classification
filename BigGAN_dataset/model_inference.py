@@ -1,11 +1,14 @@
 from transformers import BlipForConditionalGeneration
 import pandas as pd
 import torch
+import subprocess
 from PIL import Image
+from transformers import AutoProcessor, BlipForConditionalGeneration
 
 # Load the fine-tuned model
 model = BlipForConditionalGeneration.from_pretrained("fine_tuned_model")
 
+processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 # Specify the device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
