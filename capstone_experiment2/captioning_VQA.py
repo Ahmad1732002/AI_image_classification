@@ -53,19 +53,20 @@ def generate_captions(ai_image_paths, natural_image_paths):
         image_path = x
 
         general_caption= general_caption_inference(model,processor,image_path,device)
-        reasoning_caption = reasoning_caption(model, processor, image_path, device, prompt)
+        reasoning= reasoning_caption(model, processor, image_path, device, prompt)
 
 
-        captions.append("This image is AI-generated, it is an image of ", general_caption, "it is AI-generated because", reasoning_caption)
+        captions.append(f"This image is AI-generated, it is an image of {general_caption}, it is AI-generated because {reasoning}")
 
     prompt = "Question: What details indicate this image is not AI-generated? Answer:"
     
     for x in natural_image_files:
 
         image_path = x
+        general_caption= general_caption_inference(model,processor,image_path,device)
 
-        caption = reasoning_caption(model, processor, image_path, device, prompt)
-        captions.append("This image is natural, it is an image of ", general_caption, "it is natural because", reasoning_caption)
+        reasoning= reasoning_caption(model, processor, image_path, device, prompt)
+        captions.append(f"This image is natural, it is an image of {general_caption}, it is natural because {reasoning}")
     return captions
 
    
