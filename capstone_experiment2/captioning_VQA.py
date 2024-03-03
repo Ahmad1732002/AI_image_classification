@@ -12,27 +12,57 @@ import pandas as pd
 
 
 
-def reasoning_caption(model, processor, image_path, device, prompt):
+def reasoning_caption(model, processor, image, device, prompt):
     # Open and convert the image
-    image = Image.open(image_path).convert('RGB')
+
+    batch_size = 64
+    n_batches = len(images) // batch_size + (1 if len(images) % batch_size > 0 else 0)
+    all_generated_text=[]
+
+# Iterate through each batch
+    for batch_index in range(n_batches):
+        # Calculate start and end indices of the current batch
+        start_index = batch_index * batch_size
+        end_index = min((batch_index + 1) * batch_size, len(images))
+        
+        # Select the current batch of images
+        current_batch_images = images[start_index:end_index]
+
  
    
 
-    inputs = processor(image, text=prompt, return_tensors="pt").to(device, torch.float16)
+        inputs = processor(image, text=prompt, return_tensors="pt").to(device, torch.float16)
 
-    generated_ids = model.generate(**inputs, max_new_tokens=200)
-    generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
+        generated_ids = model.generate(**inputs, max_new_tokens=20)
+        generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)
+        all_generated_text.extend(generated_text)
+
     return generated_text
 
-def general_caption_inference(model, processor, image_path, device):
-    
-    # Open and convert the image
-    image = Image.open(image_path).convert('RGB')
+def general_caption_inference(model, processor, image, device):
 
-    inputs = processor(image, return_tensors="pt").to(device, torch.float16)
+    batch_size = 64
+    n_batches = len(images) // batch_size + (1 if len(images) % batch_size > 0 else 0)
+    all_generated_text=[]
 
-    generated_ids = model.generate(**inputs, max_new_tokens=20)
-    generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
+# Iterate through each batch
+    for batch_index in range(n_batches):
+        # Calculate start and end indices of the current batch
+        start_index = batch_index * batch_size
+        end_index = min((batch_index + 1) * batch_size, len(images))
+        
+        # Select the current batch of images
+        current_batch_images = images[start_index:end_index]
+        
+        # Assuming `processor` is your image processor and `model` is your text generation model
+        # Process images
+        inputs = processor(current_batch_images, return_tensors="pt").to(device, torch.float16)
+        
+        # Generate text
+        generated_ids = model.generate(**inputs, max_new_tokens=200)
+        generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)
+        all_generated_text.extend(generated_text)
+        
     return generated_text
 
 def generate_captions(ai_image_paths, natural_image_paths):
@@ -49,24 +79,43 @@ def generate_captions(ai_image_paths, natural_image_paths):
     captions = []
     prompt = "Question: What details indicate this image is AI-generated? Answer:"
     #what is abnormal in the image
-    for x in ai_image_paths:
-        image_path = x
+    # for x in ai_image_paths:
+    #     image_path = x
+        
+    #      # Open and convert the image
+    #     image = Image.open(image_path).convert('RGB')
 
-        general_caption= general_caption_inference(model,processor,image_path,device)
-        reasoning= reasoning_caption(model, processor, image_path, device, prompt)
+    #     general_caption= general_caption_inference(model,processor,image,device)
+    #     reasoning= reasoning_caption(model, processor, image_path, device, prompt)
 
 
-        captions.append(f"This image is AI-generated, it is an image of {general_caption}, it is AI-generated because {reasoning}")
+    #     captions.append(f"This image is AI-generated, it is an image of {general_caption}, it is AI-generated because {reasoning}")
+
+   
+   
+    images = [Image.open(path).convert("RGB") for path in ai_image_paths]
+    general_caption= general_caption_inference(model,processor,images,device)
+    reasoning= reasoning_caption(model, processor, image_path, device, prompt)
+    for x in range(general_caption):
+        general_caption[x]=general_caption[x].strip()
+        reasoning[x]=reasoning[x].strip()
+        captions.append(f"This image is AI-generated, it is an image of {general_caption[x]}, it is AI-generated because {reasoning[x]}")
+    
+    
+
+  
+  
+
 
     prompt = "Question: What details indicate this image is not AI-generated? Answer:"
     
-    for x in natural_image_files:
-
-        image_path = x
-        general_caption= general_caption_inference(model,processor,image_path,device)
-
-        reasoning= reasoning_caption(model, processor, image_path, device, prompt)
-        captions.append(f"This image is natural, it is an image of {general_caption}, it is natural because {reasoning}")
+    images = [Image.open(path).convert("RGB") for path in ai_image_paths]
+    general_caption= general_caption_inference(model,processor,images,device)
+    reasoning= reasoning_caption(model, processor, image_path, device, prompt)
+    for x in range(general_caption):
+        general_caption[x]=general_caption[x].strip()
+        reasoning[x]=reasoning[x].strip()
+        captions.append(f"This image is natural, it is an image of {general_caption[x]}, it is natural because {reasoning[x]}")
     return captions
 
    
