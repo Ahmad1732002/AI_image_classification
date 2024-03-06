@@ -11,37 +11,33 @@ import pandas as pd
 
 
 
+def reasoning_caption(model, processor, images, device, prompt):
+    batch_size = 256
+    all_generated_text = []
 
-def reasoning_caption(model, processor, image, device, prompt):
-    # Open and convert the image
-
-    batch_size = 64
+    # Preparing batches of images
     n_batches = len(images) // batch_size + (1 if len(images) % batch_size > 0 else 0)
-    all_generated_text=[]
 
-# Iterate through each batch
     for batch_index in range(n_batches):
-        # Calculate start and end indices of the current batch
         start_index = batch_index * batch_size
         end_index = min((batch_index + 1) * batch_size, len(images))
-        
-        # Select the current batch of images
         current_batch_images = images[start_index:end_index]
 
- 
-   
+        # Processing a batch of images
+        #inputs = processor(current_batch_images, text=[prompt] * len(current_batch_images), return_tensors="pt", padding=True).to(device, torch.float16)
+        inputs = processor(current_batch_images, text=[prompt] * len(current_batch_images), return_tensors="pt", padding=True).to(device, torch.float16)
 
-        inputs = processor(image, text=prompt, return_tensors="pt").to(device, torch.float16)
-
+        # Generate text for the batch
         generated_ids = model.generate(**inputs, max_new_tokens=20)
         generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)
         all_generated_text.extend(generated_text)
 
-    return generated_text
+    return all_generated_text
 
-def general_caption_inference(model, processor, image, device):
 
-    batch_size = 64
+def general_caption_inference(model, processor, images, device):
+
+    batch_size = 256
     n_batches = len(images) // batch_size + (1 if len(images) % batch_size > 0 else 0)
     all_generated_text=[]
 
@@ -59,11 +55,11 @@ def general_caption_inference(model, processor, image, device):
         inputs = processor(current_batch_images, return_tensors="pt").to(device, torch.float16)
         
         # Generate text
-        generated_ids = model.generate(**inputs, max_new_tokens=200)
+        generated_ids = model.generate(**inputs, max_new_tokens=20)
         generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)
         all_generated_text.extend(generated_text)
         
-    return generated_text
+    return all_generated_text
 
 def generate_captions(ai_image_paths, natural_image_paths):
     # Load the pretrained model and processor
@@ -95,8 +91,8 @@ def generate_captions(ai_image_paths, natural_image_paths):
    
     images = [Image.open(path).convert("RGB") for path in ai_image_paths]
     general_caption= general_caption_inference(model,processor,images,device)
-    reasoning= reasoning_caption(model, processor, image_path, device, prompt)
-    for x in range(general_caption):
+    reasoning= reasoning_caption(model, processor, images, device, prompt)
+    for x in range(len(general_caption)):
         general_caption[x]=general_caption[x].strip()
         reasoning[x]=reasoning[x].strip()
         captions.append(f"This image is AI-generated, it is an image of {general_caption[x]}, it is AI-generated because {reasoning[x]}")
@@ -111,8 +107,8 @@ def generate_captions(ai_image_paths, natural_image_paths):
     
     images = [Image.open(path).convert("RGB") for path in ai_image_paths]
     general_caption= general_caption_inference(model,processor,images,device)
-    reasoning= reasoning_caption(model, processor, image_path, device, prompt)
-    for x in range(general_caption):
+    reasoning= reasoning_caption(model, processor, images, device, prompt)
+    for x in range(len(general_caption)):
         general_caption[x]=general_caption[x].strip()
         reasoning[x]=reasoning[x].strip()
         captions.append(f"This image is natural, it is an image of {general_caption[x]}, it is natural because {reasoning[x]}")
@@ -130,8 +126,8 @@ test_natural_folder_path= 'imagenet_ai_0419_biggan/val/nature'
 train_ai_image_files = [os.path.join(train_ai_folder_path, file) for file in os.listdir(train_ai_folder_path)]
 train_natural_image_files=[os.path.join(train_natural_folder_path, file) for file in os.listdir(train_natural_folder_path)]
 
-test_ai_image_files = [os.path.join(train_ai_folder_path, file) for file in os.listdir(train_ai_folder_path)]
-test_natural_image_files=[os.path.join(train_natural_folder_path, file) for file in os.listdir(train_natural_folder_path)]
+test_ai_image_files = [os.path.join(test_ai_folder_path, file) for file in os.listdir(test_ai_folder_path)]
+test_natural_image_files=[os.path.join(test_natural_folder_path, file) for file in os.listdir(test_natural_folder_path)]
 
 def validate_images(dataset):
     valid_images = []
@@ -155,10 +151,15 @@ test_ai_image_files = validate_images(test_ai_image_files)
 
 
 train_captions = generate_captions(train_ai_image_files,train_natural_image_files)
-test_captions= generate_captions(test_ai_image_files,test_natural_image_files)
+print("the train captions length is: ", train_captions)
 
+test_captions= generate_captions(test_ai_image_files,test_natural_image_files)
+print("the test captions length is: ", test_captions)
 train_image_files= train_ai_image_files + train_natural_image_files
 test_image_files= test_ai_image_files + test_natural_image_files
+
+print("train image files size is: ", train_image_files)
+print("test image files size is: ", test_image_files)
 
 
 data_train = {'image': train_image_files, 'text': train_captions}
@@ -170,5 +171,5 @@ df_test = pd.DataFrame(data_test)
 
 
 # Save to a CSV file if needed
-df_train.to_csv('./exp2_train_data', index=False)
-df_test.to_csv('./exp2_test_data', index=False)
+df_train.to_csv('./exp2_train_data5.csv', index=False)
+df_test.to_csv('./exp2_test_data5.csv', index=False)
