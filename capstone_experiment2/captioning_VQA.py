@@ -105,7 +105,7 @@ def generate_captions(ai_image_paths, natural_image_paths):
 
     prompt = "Question: What details indicate this image is not AI-generated? Answer:"
     
-    images = [Image.open(path).convert("RGB") for path in ai_image_paths]
+    images = [Image.open(path).convert("RGB") for path in natural_image_paths]
     general_caption= general_caption_inference(model,processor,images,device)
     reasoning= reasoning_caption(model, processor, images, device, prompt)
     for x in range(len(general_caption)):
