@@ -30,15 +30,15 @@ class ImageCaptioningDataset(Dataset):
         img_path = self.dataset.iloc[idx]['image']
         text = self.dataset.iloc[idx]['text']
 
-      
+
         image = Image.open(img_path).convert('RGB')
-    
+
         encoding = self.processor(images=image, text=text, padding="max_length", return_tensors="pt")
         # remove batch dimension
         encoding = {k:v.squeeze() for k,v in encoding.items()}
         encoding['image_path'] = img_path  # Add image path to the encoding
         encoding['text'] = text  # Add text to the encoding
-        
+
         return encoding
 
 from transformers import AutoProcessor, BlipForConditionalGeneration
@@ -47,14 +47,14 @@ processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base
 model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
 train_dataset = ImageCaptioningDataset(training_dataset, processor)
-train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=64)
+train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=32)
 
 validation_dataset = ImageCaptioningDataset(validation_dataset, processor)
-validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=64)
+validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=32)
 
 
 test_dataset = ImageCaptioningDataset(testing_dataset, processor)
-test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=64)
+test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=32)
 
 
 def calculate_accuracy(model, dataloader, device):
@@ -101,7 +101,7 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
     for idx in sample_indices:
         # Use the __getitem__ method of your dataset to get the data
         data = dataset[idx]
-      
+
         img_path = data['image_path']  # Adjust this if your dataset structure is different
         text = data['text']  # Adjust this if your dataset structure is different
 
@@ -121,7 +121,7 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
     # Generate predictions for each sample
     preds, refs = [], []
     for pixel_values, input_ids in zip(pixel_values_list, input_ids_list):
-        outputs = model.generate(pixel_values=pixel_values, input_ids=input_ids)
+        outputs = model.generate(pixel_values=pixel_values, input_ids=input_ids, max_length=120)
         pred = processor.batch_decode(outputs, skip_special_tokens=True)
         preds.extend(pred)
 
@@ -132,22 +132,22 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
 
 
 for epoch in range(1):
-    print("Epoch:", epoch)  
+    print("Epoch:", epoch)
 
     progress_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader), desc="Training")
 
     for idx, batch in progress_bar:
-        
+
         input_ids = batch.pop("input_ids").to(device)
         pixel_values = batch.pop("pixel_values").to(device)
 
         outputs = model(input_ids=input_ids,
                         pixel_values=pixel_values,
                         labels=input_ids)
-        
+
         loss = outputs.loss
 
-        
+
 
         optimizer.zero_grad()
 
@@ -157,7 +157,7 @@ for epoch in range(1):
 
         progress_bar.set_postfix(loss=loss.item())
 
-       
+
      # Sample inference at the end of each epoch
     sample_preds, sample_refs = sample_inference(model, processor, train_dataset, device)
     for pred, ref in zip(sample_preds, sample_refs):
@@ -174,7 +174,7 @@ model.save_pretrained("fine_tuned_model")
 # Save optimizer's state_dict
 torch.save(optimizer.state_dict(), "optimizer_state.pth")
 
-#load test data and calculate accuracy 
+#load test data and calculate accuracy
 def test_model_and_calculate_accuracy(model, dataloader, processor, device):
     model.eval()
     correct_matches = 0
@@ -186,7 +186,7 @@ def test_model_and_calculate_accuracy(model, dataloader, processor, device):
             pixel_values = batch.pop("pixel_values").to(device)
 
             # Generate captions
-            outputs = model.generate(pixel_values=pixel_values)
+            outputs = model.generate(pixel_values=pixel_values, max_length=120)
             preds = processor.batch_decode(outputs, skip_special_tokens=True)
 
             # Get reference captions
