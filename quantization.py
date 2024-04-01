@@ -47,6 +47,7 @@ quantized_model = torch.quantization.quantize_dynamic(
     model, {nn.Linear}, dtype=torch.qint8, qconfig=quantization_config)
 
 
+
 # Evaluate the quantized model
 def evaluate(model, dataloader):
     model.eval()
