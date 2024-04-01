@@ -6,8 +6,8 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --gres=gpu:a100:1
-#SBATCH --time=6:59:59
-#SBATCH --mem=40GB
+#SBATCH --time=79:59:59
+#SBATCH --mem=80GB
 #SBATCH --job-name=run_infer
 
 module purge
