@@ -12,10 +12,9 @@ fine_tuned_model_path = "fine_tuned_model"
 model = AutoModelForSequenceClassification.from_pretrained(fine_tuned_model_path)
 
 # Define the validation dataset and DataLoader
-validation_data_path = 'validation_data.csv'  # Adjust path as per your dataset
+validation_data_path = 'validation_data.csv'
 validation_dataset = pd.read_csv(validation_data_path)
 
-# Assuming you have defined your validation dataset and DataLoader
 class CustomDataset(Dataset):
     def __init__(self, dataset, processor):
         self.dataset = dataset
@@ -47,6 +46,7 @@ quantization_config = torch.quantization.get_default_qconfig('fbgemm')
 quantized_model = torch.quantization.quantize_dynamic(
     model, {nn.Linear}, dtype=torch.qint8, qconfig=quantization_config)
 
+
 # Evaluate the quantized model
 def evaluate(model, dataloader):
     model.eval()
@@ -62,7 +62,7 @@ def evaluate(model, dataloader):
     return accuracy
 
 # Test the quantized model
-test_data_path = 'test_data.csv'  # Adjust path as per your dataset
+test_data_path = 'exp2_test_data9.csv' 
 test_dataset = pd.read_csv(test_data_path)
 test_dataset = CustomDataset(test_dataset, processor)
 test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=32)
