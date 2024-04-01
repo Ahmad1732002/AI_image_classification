@@ -3,7 +3,9 @@ import subprocess
 import pandas as pd
 from PIL import Image
 from tqdm import tqdm
+from transformers import AutoProcessor, AutoModelForCausalLM
 
+from huggingface_hub import hf_hub_download
 # Install the "transformers" package
 transformers_command = "pip install git+https://github.com/huggingface/transformers.git@main"
 subprocess.run(transformers_command, shell=True)
@@ -43,8 +45,10 @@ class ImageCaptioningDataset(Dataset):
 
 from transformers import AutoProcessor, BlipForConditionalGeneration
 
-processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+processor = AutoProcessor.from_pretrained("microsoft/git-base-textvqa")
+
+model = AutoModelForCausalLM.from_pretrained("microsoft/git-base-textvqa")
+
 
 train_dataset = ImageCaptioningDataset(training_dataset, processor)
 train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=64)
@@ -85,8 +89,6 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
-
-
 
 model.train()
 
@@ -169,7 +171,7 @@ for epoch in range(1):
     print(f"Training Accuracy after epoch {epoch}: {train_accuracy}")
 
 # Save the fine-tuned model
-model.save_pretrained("fine_tuned_model")
+model.save_pretrained("microsoft_model")
 
 # Save optimizer's state_dict
 torch.save(optimizer.state_dict(), "optimizer_state.pth")
