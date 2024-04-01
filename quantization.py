@@ -45,6 +45,7 @@ validation_dataloader = DataLoader(validation_dataset, shuffle=False, batch_size
 quantization_config = torch.quantization.get_default_qconfig('fbgemm')
 quantized_model = torch.quantization.quantize_dynamic(
     model, {nn.Linear}, dtype=torch.qint8, qconfig=quantization_config)
+model.save_pretrained("Quantized_model")
 
 
 
