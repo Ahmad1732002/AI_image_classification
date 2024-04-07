@@ -46,8 +46,10 @@ class ImageCaptioningDataset(Dataset):
 def collator(batch):
   new_batch = {"flattened_patches":[], "attention_mask":[]}
   texts = [item["text"] for item in batch]
+  print('this part works', texts)
 
   text_inputs = processor(text=texts, padding="max_length", return_tensors="pt", add_special_tokens=True, max_length=20)
+  print('text inputs collected')
 
   new_batch["labels"] = text_inputs.input_ids
 
