@@ -46,7 +46,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
 
 
 
-def keyword_presence(text, keywords=['natural', 'AI'], match_length=20):
+def keyword_presence(text, keywords=['natural', 'AI'], match_length=30):
     """
     Check if the text contains any of the specified keywords within the first `match_length` characters, ignoring case sensitivity.
     Returns the keyword found or None if no keyword is found.
