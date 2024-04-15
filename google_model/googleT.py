@@ -10,12 +10,7 @@ from transformers import Pix2StructProcessor, Pix2StructForConditionalGeneration
 transformers_command = "pip install git+https://github.com/huggingface/transformers.git@main"
 subprocess.run(transformers_command, shell=True)
 
-#train_dataset = pd.read_csv('validated_train_data_csv')
-#training_dataset= train_dataset.sample(frac=0.1)
-#validation_dataset = train_dataset.sample(frac=0.05)
 
-training_dataset = pd.read_csv('exp2_train_data9.csv')
-validation_dataset = training_dataset.sample(frac=0.2)
 testing_dataset=pd.read_csv('exp2_test_data9.csv')
 
 from torch.utils.data import Dataset, DataLoader
@@ -66,75 +61,45 @@ def collator(batch):
 from transformers import AutoProcessor, BlipForConditionalGeneration
 
 processor = Pix2StructProcessor.from_pretrained('google/matcha-chartqa')
-model = Pix2StructForConditionalGeneration.from_pretrained('google/matcha-chartqa')
+model = Pix2StructForConditionalGeneration.from_pretrained('google_model2')
 
 
-train_dataset = ImageCaptioningDataset(training_dataset, processor)
-train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=8, collate_fn=collator)
+# train_dataset = ImageCaptioningDataset(training_dataset, processor)
+# train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=64, collate_fn=collator)
 
-validation_dataset = ImageCaptioningDataset(validation_dataset, processor)
-validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=8, collate_fn=collator)
+# validation_dataset = ImageCaptioningDataset(validation_dataset, processor)
+# validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=64, collate_fn=collator)
 
 
 test_dataset = ImageCaptioningDataset(testing_dataset, processor)
-test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=8, collate_fn=collator)
+test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=64, collate_fn=collator)
 
 
-def calculate_accuracy(model, dataloader, device):
-    model.eval()
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for batch in dataloader:
-            input_ids = batch.pop("input_ids").to(device)
-            pixel_values = batch.pop("pixel_values").to(device)
-
-            outputs = model.generate(pixel_values=pixel_values)
-            preds = processor.batch_decode(outputs, skip_special_tokens=True)
-            refs = processor.batch_decode(input_ids, skip_special_tokens=True)
-
-            for pred, ref in zip(preds, refs):
-                if pred.strip() == ref.strip():
-                    correct += 1
-                total += 1
-    return correct / total
 
 
 import torch
 
 
-
-optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model.to(device)
-# Initialize both processors
-blip_processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-pix2struct_processor = Pix2StructProcessor.from_pretrained('google/matcha-chartqa')
-
-# Load an image
-image_path = testing_dataset.iloc[3]['image']
-image = Image.open(image_path).convert('RGB')
-
-# Process the image with BLIP processor
-blip_output = blip_processor(images=image, return_tensors="pt")
-print("BLIP Processor Output Keys:", blip_output.keys())
-
-# Assuming Pix2StructProcessor has a similar interface
-# Note: This is a hypothetical example, adjust based on actual processor methods
-pix2struct_output = pix2struct_processor(images=image,text=" ", return_tensors="pt")
-print("Pix2Struct Processor Output Keys:", pix2struct_output.keys())
-model.train()
+def keyword_presence(text, keywords=['natural', 'AI'], match_length=30):
+    """
+    Check if the text contains any of the specified keywords within the first `match_length` characters, ignoring case sensitivity.
+    Returns the keyword found or None if no keyword is found.
+    """
+    text_lower = text[:match_length].lower()
+    for keyword in keywords:
+        if keyword.lower() in text_lower:
+            return keyword
+    return None
 
 
 def sample_inference(model, processor, dataset, device, num_samples=2):
     # Randomly select a few samples from the dataset
-    sample_indices = random.sample(range(len(dataset)), num_samples)
+  
 
     # Initialize lists for images, texts, and processed inputs
     images, texts, flattened_patches_list, attention_mask_list = [], [], [], []
 
-    for idx in sample_indices:
+    for idx in len(dataset):
         # Use the __getitem__ method of your dataset to get the data
         data = dataset[idx]
 
@@ -146,7 +111,7 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
         images.append(image)
         texts.append(text)
 
-        inputs = processor(images=image, return_tensors="pt", max_patches=512).to(device)
+        inputs = processor(images=image,text=' ', return_tensors="pt", max_patches=512).to(device)
 
         flattened_patches = inputs.flattened_patches
         attention_mask = inputs.attention_mask
@@ -174,56 +139,16 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
 
     return preds, refs
 
-
-
-for epoch in range(5):
-    print("Epoch:", epoch)
-
-    progress_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader), desc="Training")
-
-    for idx, batch in progress_bar:
-
-        
-        
-        labels = batch.pop("labels").to(device)
-        flattened_patches = batch.pop("flattened_patches").to(device)
-        attention_mask = batch.pop("attention_mask").to(device)
-
-        outputs = model(flattened_patches=flattened_patches,
-                        attention_mask=attention_mask,
-                        labels=labels)
-
-        loss = outputs.loss
-
-
-
-        optimizer.zero_grad()
-
-        loss.backward()
-
-        optimizer.step()
-
-        progress_bar.set_postfix(loss=loss.item())
-
-
-     # Sample inference at the end of each epoch
-    # Save the fine-tuned model
-    model.save_pretrained("google_model")
-
-    # Save optimizer's state_dict
-    torch.save(optimizer.state_dict(), "optimizer_state.pth")
-    sample_preds, sample_refs = sample_inference(model, processor, train_dataset, device)
-    for pred, ref in zip(sample_preds, sample_refs):
-        print(f"Sample Prediction: {pred}\nReference: {ref}")
-
-
-
-    # train_accuracy = calculate_accuracy(model, validation_dataloader, device)
-    # print(f"Training Accuracy after epoch {epoch}: {train_accuracy}")
-
-# Save the fine-tuned model
-model.save_pretrained("google_model3")
-
-# Save optimizer's state_dict
-torch.save(optimizer.state_dict(), "optimizer_state.pth")
-
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model.to(device)
+sample_preds, sample_refs = sample_inference(model, processor, test_dataset, device)
+correct_matches = 0
+total_samples = 0
+for pred, ref in zip(sample_preds, sample_refs):
+    pred_keyword = keyword_presence(pred)
+    ref_keyword = keyword_presence(ref)
+    if pred_keyword and ref_keyword and pred_keyword.lower() == ref_keyword.lower():
+        correct_matches += 1
+    total_samples += 1
+accuracy = correct_matches / total_samples if total_samples > 0 else 0
+print(f"Test Accuracy (based on keyword matches): {accuracy:.2f}")
