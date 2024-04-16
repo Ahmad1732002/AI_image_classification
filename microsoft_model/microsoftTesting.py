@@ -6,7 +6,7 @@ from tqdm import tqdm
 import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoProcessor, BlipForConditionalGeneration
-
+from transformers import AutoProcessor, AutoModelForCausalLM
 
 # Assuming the "transformers" package is already installed and datasets are loaded
 
@@ -14,8 +14,9 @@ from transformers import AutoProcessor, BlipForConditionalGeneration
 
 testing_dataset=pd.read_csv('exp2_test_data9.csv')
 
-processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-model = BlipForConditionalGeneration.from_pretrained("fine_tuned_model")
+processor = AutoProcessor.from_pretrained("microsoft/git-base-textvqa")
+
+model = AutoModelForCausalLM.from_pretrained("microsoft/git-base-textvqa")
 class ImageCaptioningDataset(Dataset):
     def __init__(self, dataset, processor):
         self.dataset = dataset

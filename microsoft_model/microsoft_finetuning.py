@@ -51,34 +51,34 @@ model = AutoModelForCausalLM.from_pretrained("microsoft/git-base-textvqa")
 
 
 train_dataset = ImageCaptioningDataset(training_dataset, processor)
-train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=64)
+train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=16)
 
 validation_dataset = ImageCaptioningDataset(validation_dataset, processor)
-validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=64)
+validation_dataloader = DataLoader(validation_dataset, shuffle=True, batch_size=16)
 
 
 test_dataset = ImageCaptioningDataset(testing_dataset, processor)
-test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=64)
+test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=16)
 
 
-def calculate_accuracy(model, dataloader, device):
-    model.eval()
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for batch in dataloader:
-            input_ids = batch.pop("input_ids").to(device)
-            pixel_values = batch.pop("pixel_values").to(device)
+# def calculate_accuracy(model, dataloader, device):
+#     model.eval()
+#     correct = 0
+#     total = 0
+#     with torch.no_grad():
+#         for batch in dataloader:
+#             input_ids = batch.pop("input_ids").to(device)
+#             pixel_values = batch.pop("pixel_values").to(device)
 
-            outputs = model.generate(pixel_values=pixel_values)
-            preds = processor.batch_decode(outputs, skip_special_tokens=True)
-            refs = processor.batch_decode(input_ids, skip_special_tokens=True)
+#             outputs = model.generate(pixel_values=pixel_values)
+#             preds = processor.batch_decode(outputs, skip_special_tokens=True)
+#             refs = processor.batch_decode(input_ids, skip_special_tokens=True)
 
-            for pred, ref in zip(preds, refs):
-                if pred.strip() == ref.strip():
-                    correct += 1
-                total += 1
-    return correct / total
+#             for pred, ref in zip(preds, refs):
+#                 if pred.strip() == ref.strip():
+#                     correct += 1
+#                 total += 1
+#     return correct / total
 
 
 import torch
@@ -123,7 +123,7 @@ def sample_inference(model, processor, dataset, device, num_samples=2):
     # Generate predictions for each sample
     preds, refs = [], []
     for pixel_values, input_ids in zip(pixel_values_list, input_ids_list):
-        outputs = model.generate(pixel_values=pixel_values, input_ids=input_ids)
+        outputs = model.generate(pixel_values=pixel_values, input_ids=input_ids, max_length=50)
         pred = processor.batch_decode(outputs, skip_special_tokens=True)
         preds.extend(pred)
 
@@ -160,15 +160,12 @@ for epoch in range(1):
         progress_bar.set_postfix(loss=loss.item())
 
        
-     # Sample inference at the end of each epoch
-    sample_preds, sample_refs = sample_inference(model, processor, train_dataset, device)
-    for pred, ref in zip(sample_preds, sample_refs):
-        print(f"Sample Prediction: {pred}\nReference: {ref}")
 
 
 
-    train_accuracy = calculate_accuracy(model, validation_dataloader, device)
-    print(f"Training Accuracy after epoch {epoch}: {train_accuracy}")
+
+    # train_accuracy = calculate_accuracy(model, validation_dataloader, device)
+    # print(f"Training Accuracy after epoch {epoch}: {train_accuracy}")
 
 # Save the fine-tuned model
 model.save_pretrained("microsoft_model")
@@ -176,33 +173,8 @@ model.save_pretrained("microsoft_model")
 # Save optimizer's state_dict
 torch.save(optimizer.state_dict(), "optimizer_state.pth")
 
-#load test data and calculate accuracy 
-def test_model_and_calculate_accuracy(model, dataloader, processor, device):
-    model.eval()
-    correct_matches = 0
-    total_samples = 0
+    # Sample inference at the end of each epoch
+sample_preds, sample_refs = sample_inference(model, processor, train_dataset, device)
+for pred, ref in zip(sample_preds, sample_refs):
+    print(f"Sample Prediction: {pred}\nReference: {ref}")
 
-    with torch.no_grad():
-        for batch in dataloader:
-            input_ids = batch.pop("input_ids").to(device)
-            pixel_values = batch.pop("pixel_values").to(device)
-
-            # Generate captions
-            outputs = model.generate(pixel_values=pixel_values)
-            preds = processor.batch_decode(outputs, skip_special_tokens=True)
-
-            # Get reference captions
-            refs = processor.batch_decode(input_ids, skip_special_tokens=True)
-
-            # Compare generated captions with reference captions
-            for pred, ref in zip(preds, refs):
-                if pred.strip().lower() == ref.strip().lower():
-                    correct_matches += 1
-                total_samples += 1
-
-    accuracy = correct_matches / total_samples if total_samples > 0 else 0
-    return accuracy
-
-# Test the model and calculate accuracy
-test_accuracy = test_model_and_calculate_accuracy(model, test_dataloader, processor, device)
-print(f"Test Accuracy (based on exact matches): {test_accuracy:.2f}")
