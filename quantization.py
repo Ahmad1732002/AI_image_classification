@@ -6,6 +6,7 @@ import pandas as pd
 from PIL import Image
 from transformers import AutoProcessor, AutoModelForSequenceClassification, AdamW
 from tqdm import tqdm
+import os
 
 # Load the fine-tuned model
 fine_tuned_model_path = "fine_tuned_model"
@@ -41,13 +42,30 @@ processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base
 validation_dataset = CustomDataset(validation_dataset, processor)
 validation_dataloader = DataLoader(validation_dataset, shuffle=False, batch_size=32)
 
+# Calculate model size function
+def calculate_model_size(model_path):
+    size = 0
+    for root, dirs, files in os.walk(model_path):
+        for file in files:
+            size += os.path.getsize(os.path.join(root, file))
+    return size / (1024 * 1024)  # Size in MB
+
+# Calculate and print the size of the model before quantization
+pre_quantization_size = calculate_model_size(fine_tuned_model_path)
+print(f"Model size before quantization: {pre_quantization_size:.2f} MB")
+
 # Define the quantization method and configuration
 quantization_config = torch.quantization.get_default_qconfig('fbgemm')
 quantized_model = torch.quantization.quantize_dynamic(
     model, {nn.Linear}, dtype=torch.qint8, qconfig=quantization_config)
-model.save_pretrained("Quantized_model")
 
+# Save the quantized model
+quantized_model_path = "Quantized_model"
+quantized_model.save_pretrained(quantized_model_path)
 
+# Calculate and print the size of the model after quantization
+post_quantization_size = calculate_model_size(quantized_model_path)
+print(f"Model size after quantization: {post_quantization_size:.2f} MB")
 
 # Evaluate the quantized model
 def evaluate(model, dataloader):
@@ -64,7 +82,7 @@ def evaluate(model, dataloader):
     return accuracy
 
 # Test the quantized model
-test_data_path = 'exp2_test_data9.csv' 
+test_data_path = 'exp2_test_data9.csv'
 test_dataset = pd.read_csv(test_data_path)
 test_dataset = CustomDataset(test_dataset, processor)
 test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=32)
