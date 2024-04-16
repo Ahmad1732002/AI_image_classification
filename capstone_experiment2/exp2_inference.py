@@ -75,11 +75,25 @@ start_time = time.time()
 captions = general_caption_inference(model, processor, images, device)
 end_time = time.time()
 
+
+
 # Calculate and print execution time
 execution_time = end_time - start_time
 print(f"Execution Time: {execution_time} seconds")
+natural_img_paths=[]
+for i in range(7000,7006):
+    natural_img_paths.append(testing_dataset.iloc[i]['image'])
+
+nat_images = [Image.open(path).convert("RGB") for path in natural_img_paths]
+
+nat_captions = general_caption_inference(model, processor, nat_images, device)
 
 # Since `captions` is a list of captions for each image, you might want to print them differently.
 # For example, print the first few captions to check:
-for i, caption in enumerate(captions[:10]):
+print('BLIP MODEL')
+for i, caption in enumerate(captions[:5]):
     print(f"Image {i+1} Caption: {caption}")
+
+for i, caption in enumerate(nat_captions[:5]):
+    print(f"Image {i+5} Caption: {caption}")
+
