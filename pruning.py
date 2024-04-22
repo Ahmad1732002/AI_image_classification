@@ -51,8 +51,6 @@ def apply_magnitude_pruning(model, pruning_percentage):
 pruning_percentage = 0.2  # Example: prune 20% of weights
 apply_magnitude_pruning(model, pruning_percentage)
 
-# Fine-tune the pruned model if necessary
-
 # Evaluate the pruned model
 def evaluate(model, dataloader):
     model.eval()
