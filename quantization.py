@@ -6,13 +6,14 @@ import pandas as pd
 from PIL import Image
 from transformers import AutoProcessor, AutoModelForSequenceClassification, AdamW
 from tqdm import tqdm
+from transformers import AutoProcessor, BlipForConditionalGeneration
 
 # Load the fine-tuned model
 fine_tuned_model_path = "fine_tuned_model"
-model = AutoModelForSequenceClassification.from_pretrained(fine_tuned_model_path)
+model = BlipForConditionalGeneration.from_pretrained("fine_tuned_model")
 
 # Define the validation dataset and DataLoader
-validation_data_path = 'validation_data.csv'
+validation_data_path = 'exp2_test_data9.csv'
 validation_dataset = pd.read_csv(validation_data_path)
 
 class CustomDataset(Dataset):
