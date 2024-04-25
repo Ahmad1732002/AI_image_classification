@@ -5,11 +5,14 @@ import torch
 import subprocess
 from PIL import Image
 import time
-
+from transformers import BlipProcessor, BlipForConditionalGeneration
 
 # Load the fine-tuned model and processor
-model = BlipForConditionalGeneration.from_pretrained("fine_tuned_model")
-processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+#model = BlipForConditionalGeneration.from_pretrained("quantized_model2")
+#processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+#processor = AutoProcessor.from_pretrained("fuseCap_dynq")
+processor = BlipProcessor.from_pretrained("noamrot/FuseCap")
+model = BlipForConditionalGeneration.from_pretrained("fuseCap_dynq")
 
 
 # Set device (GPU if available, otherwise CPU)
@@ -81,7 +84,7 @@ end_time = time.time()
 execution_time = end_time - start_time
 print(f"Execution Time: {execution_time} seconds")
 natural_img_paths=[]
-for i in range(7000,7006):
+for i in range(6999,7005):
     natural_img_paths.append(testing_dataset.iloc[i]['image'])
 
 nat_images = [Image.open(path).convert("RGB") for path in natural_img_paths]
@@ -96,4 +99,3 @@ for i, caption in enumerate(captions[:5]):
 
 for i, caption in enumerate(nat_captions[:5]):
     print(f"Image {i+5} Caption: {caption}")
-

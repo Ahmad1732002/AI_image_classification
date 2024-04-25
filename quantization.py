@@ -15,7 +15,13 @@ model = BlipForConditionalGeneration.from_pretrained("fine_tuned_model")
 # Define the validation dataset and DataLoader
 validation_data_path = 'exp2_test_data9.csv'
 validation_dataset = pd.read_csv(validation_data_path)
-
+# Calculate model size function
+def calculate_model_size(model_path):
+    size = 0
+    for root, dirs, files in os.walk(model_path):
+        for file in files:
+            size += os.path.getsize(os.path.join(root, file))
+    return size / (1024 * 1024)  # Size in MB
 class CustomDataset(Dataset):
     def __init__(self, dataset, processor):
         self.dataset = dataset
@@ -45,9 +51,14 @@ validation_dataloader = DataLoader(validation_dataset, shuffle=False, batch_size
 # Define the quantization method and configuration
 quantization_config = torch.quantization.get_default_qconfig('fbgemm')
 quantized_model = torch.quantization.quantize_dynamic(
-    model, {nn.Linear}, dtype=torch.qint8, qconfig=quantization_config)
-model.save_pretrained("Quantized_model")
+    model, {nn.Linear}, dtype=torch.qint8)
+pre_quantization_size = calculate_model_size(fine_tuned_model_path)
+print(f"Model size before quantization: {pre_quantization_size:.2f} MB")
+quantized_model_path="BLIPSTAT_updated"
+model.save_pretrained(quantized_model_path)
 
+post_quantization_size = calculate_model_size(quantized_model_path)
+print(f"Model size after quantization: {post_quantization_size:.2f} MB")
 
 
 # Evaluate the quantized model
@@ -68,6 +79,10 @@ def evaluate(model, dataloader):
 test_data_path = 'exp2_test_data9.csv' 
 test_dataset = pd.read_csv(test_data_path)
 test_dataset = CustomDataset(test_dataset, processor)
+        encoding['text'] = text
+
+        return encoding
+
 test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=32)
 
 test_accuracy = evaluate(quantized_model, test_dataloader)

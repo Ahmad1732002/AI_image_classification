@@ -61,7 +61,7 @@ def collator(batch):
 from transformers import AutoProcessor, BlipForConditionalGeneration
 
 processor = Pix2StructProcessor.from_pretrained('google/matcha-chartqa')
-model = Pix2StructForConditionalGeneration.from_pretrained('google_model2')
+model = Pix2StructForConditionalGeneration.from_pretrained('google_model')
 
 
 # train_dataset = ImageCaptioningDataset(training_dataset, processor)
