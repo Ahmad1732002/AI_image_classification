@@ -22,4 +22,5 @@ conda activate myenv
 export TRANSFORMERS_CACHE="/scratch/af3954/huggingface_cache"
 
 # Call python script
-python -u blip_test.py
+# Insert file name in the placeholder position
+python -u [file_name].py
