@@ -14,8 +14,8 @@ from transformers import AutoProcessor, BlipForConditionalGeneration
 
 testing_dataset=pd.read_csv('exp2_test_data9.csv')
 
-processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-model = BlipForConditionalGeneration.from_pretrained("fine_tuned_model")
+processor = BlipProcessor.from_pretrained("noamrot/FuseCap")
+model = BlipForConditionalGeneration.from_pretrained("fuseCap_finetuned")
 class ImageCaptioningDataset(Dataset):
     def __init__(self, dataset, processor):
         self.dataset = dataset

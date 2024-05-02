@@ -173,7 +173,7 @@ for epoch in range(1):
     print(f"Training Accuracy after epoch {epoch}: {train_accuracy}")
 
 # Save the fine-tuned model
-model.save_pretrained("VIT_finetuned_model")
+model.save_pretrained("fuseCap_finetuned")
 
 # Save optimizer's state_dict
 torch.save(optimizer.state_dict(), "optimizer_state.pth")

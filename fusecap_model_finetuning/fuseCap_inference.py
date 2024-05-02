@@ -9,7 +9,7 @@ from transformers import BlipProcessor, BlipForConditionalGeneration
 
 # Load the fine-tuned model and processor
 processor = BlipProcessor.from_pretrained("noamrot/FuseCap")
-model = BlipForConditionalGeneration.from_pretrained("fuseCap_dynq")
+model = BlipForConditionalGeneration.from_pretrained("fuseCap_finetuned")
 
 
 # Set device (GPU if available, otherwise CPU)

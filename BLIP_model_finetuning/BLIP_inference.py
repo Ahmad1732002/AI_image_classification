@@ -8,11 +8,8 @@ import time
 from transformers import BlipProcessor, BlipForConditionalGeneration
 
 # Load the fine-tuned model and processor
-#model = BlipForConditionalGeneration.from_pretrained("quantized_model2")
-#processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-#processor = AutoProcessor.from_pretrained("fuseCap_dynq")
-processor = BlipProcessor.from_pretrained("noamrot/FuseCap")
-model = BlipForConditionalGeneration.from_pretrained("fuseCap_dynq")
+model = BlipForConditionalGeneration.from_pretrained("BLIP_finetuned")
+processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 
 
 # Set device (GPU if available, otherwise CPU)
