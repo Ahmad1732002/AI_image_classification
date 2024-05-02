@@ -1,0 +1,355 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Caption Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #f0f3f5;
+            color: #333;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            background: #e8eff4;
+        }
+        .drop-area {
+            background: #ffffff;
+            border: 2px dashed #007BFF;
+            border-radius: 10px;
+            padding: 20px;
+            height: 300px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border 0.3s ease;
+        }
+        .drop-area:hover {
+            border-color: #0056b3;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .caption-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.05);
+            margin-top: 20px;
+        }
+        .clear-button {
+            background-color: #dc3545;
+            margin-top: 20px;
+        }
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+        .subtitle {
+            font-size: 20px;
+            color: #444;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head> -->
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Caption Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #f0f3f5;
+            color: #333;
+            font-size: 18px; /* Increased base font size */
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            background: #e8eff4;
+        }
+        .drop-area {
+            background: #ffffff;
+            border: 2px dashed #007BFF;
+            border-radius: 10px;
+            padding: 20px;
+            height: 300px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border 0.3s ease;
+        }
+        .drop-area:hover {
+            border-color: #0056b3;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px; /* Increased font size for buttons */
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        img {
+            max-width: 100%;
+            max-height: 280px; /* New max height to maintain aspect ratio */
+            height: auto;
+        }
+        .caption-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            font-size: 30px;
+        }
+        .clear-button {
+            background-color: #dc3545;
+            margin-top: 20px;
+        }
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+        .subtitle {
+            font-size: 30px; /* Increased subtitle font size */
+            color: #444;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head> -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Caption Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #f0f3f5;
+            color: #333;
+            font-size: 18px; /* Increased base font size */
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            background: #e8eff4;
+        }
+        .drop-area {
+            background: #ffffff;
+            border: 2px dashed #007BFF;
+            border-radius: 10px;
+            padding: 20px;
+            height: 300px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border 0.3s ease;
+        }
+        .drop-area:hover {
+            border-color: #0056b3;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px; /* Increased font size for buttons */
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .drop-area img {
+            width: 100%; /* Ensures image takes the full width of the drop area */
+            height: 280px; /* Fixed height to fill the area */
+            object-fit: contain; /* Ensures the image maintains aspect ratio */
+        }
+        .caption-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            font-size: 40px; /* Increased font size for captions */
+        }
+        .clear-button {
+            background-color: #dc3545;
+            margin-top: 20px;
+        }
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+        .subtitle {
+            font-size: 30px; /* Increased subtitle font size */
+            color: #444;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <div class="sidebar">
+        <h3>Image Preview</h3>
+        <button onclick="document.getElementById('fileInput').click()">Select Image</button>
+        <input type="file" id="fileInput" style="display: none;" onchange="previewFile()">
+        <div id="imageList"></div>
+        <button class="clear-button" onclick="clearAll()">Clear All</button>
+    </div>
+    <div class="content">
+        <h1>Effect of Dynamic Quantization on BLIP Image Captioning</h1>
+        <div class="subtitle">This is a prequantized BLIP model - Model size: <b> {{ model_size }} </b> MB</div>
+        <div id="dropArea1" class="drop-area">
+            Drag an image here for Original Model
+        </div>
+        <button onclick="uploadAndGenerateCaption('dropArea1', '/generate_caption')">Generate Caption</button>
+        <div id="caption1" class="caption-box">Caption will appear here...</div>
+        
+        <div class="subtitle">This is a post-quantized BLIP model - Model size: <b> {{ quantized_model_size }} </b>MB</div>
+        <div id="dropArea2" class="drop-area">
+            Drag an image here for Quantized Model
+        </div>
+        <button onclick="uploadAndGenerateCaption('dropArea2', '/generate_caption_quantized')">Generate Quantized Caption</button>
+        <div id="caption2" class="caption-box">Caption will appear here...</div>
+    </div>
+
+    <script>
+        function previewFile() {
+            var file = document.getElementById('fileInput').files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var imgElement = document.createElement("img");
+                imgElement.src = e.target.result;
+                imgElement.draggable = true;
+                imgElement.ondragstart = function(event) {
+                    event.dataTransfer.setData("text", event.target.src);
+                };
+                imgElement.onclick = function() {
+                    this.remove(); // Allow image removal by clicking
+                };
+                document.getElementById('imageList').appendChild(imgElement);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.querySelectorAll('.drop-area').forEach(area => {
+            area.ondragover = function(event) {
+                event.preventDefault();
+            };
+
+            area.ondrop = function(event) {
+                event.preventDefault();
+                var data = event.dataTransfer.getData("text");
+                var mainImage = document.createElement("img");
+                mainImage.src = data;
+                mainImage.style.maxWidth = "500px";
+                area.innerHTML = '';
+                area.appendChild(mainImage);
+            };
+        });
+
+        function uploadAndGenerateCaption(areaId, endpoint) {
+            var mainImage = document.querySelector(`#${areaId} img`);
+            if (!mainImage) {
+                alert('Please drag an image into the drop area first!');
+                return;
+            }
+            var image_data = mainImage.src;
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image_data: image_data })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('caption' + areaId.slice(-1)).textContent = data.caption;
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('imageList').innerHTML = ''; // Clear the sidebar
+            document.querySelectorAll('.drop-area').forEach(area => area.innerHTML = 'Drag an image here'); // Reset drop areas
+            document.querySelectorAll('.caption-box').forEach(caption => caption.textContent = 'Caption will appear here...'); // Reset captions
+        }
+    </script>
+</body>
+</html>
