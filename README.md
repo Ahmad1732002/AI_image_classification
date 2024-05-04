@@ -20,7 +20,5 @@ The datasets are used to train and evaluate the model performance, ensuring robu
 - **Quantization:** Contains scripts for applying dynamic quantization to the finetuned models.
 - **Demo:** A demo script is included to demonstrate the inference capabilities of the models before and after optimization.
 
-## Getting Started
-To begin using this framework, clone the repository using:
-```bash
-git clone https://github.com/Ahmad1732002/capstone.git
+## How to Run the Code
+First, you need to download the GenImage dataset, which can be found [here](https://arxiv.org/abs/2306.08571). Then run the `dataset_labeling.py` script in the dataset, which will produce two CSV files: `exp2_test_data9.csv` and `exp2_train_data9.csv`. These files are necessary for running the finetuning code for one of the four models attached in the folders. The finetuning code will produce a finetuned model, which is required to run the accuracy classification as well as the inference codes provided in the above models. The finetuned model can be further optimized by applying one of the optimization techniques in the `models_optimization` folder. Additionally, there is a demo in the `inference_demo` folder that can be run to show how the performance of the finetuned model changes after optimization.
