@@ -19,20 +19,20 @@ os.makedirs(output_folder, exist_ok=True)
 freq_patterns = FrequencyPatterns(p=1.0)
 
 # Get the list of image files in the input folder
+image_files = [os.path.join(input_folder, file) for file in os.listdir(input_folder)]
 
-train_ai_image_files = [os.path.join(input_folder, file) for file in os.listdir(input_folder)]
-
-
-
-# Loop through the limited list of images
-for image_name in train_ai_image_files:
-    image_path = os.path.join(input_folder, image_name)
+# Loop through the list of images
+for image_path in image_files:
+    image_name = os.path.basename(image_path)
     base_image = cv2.imread(image_path, cv2.IMREAD_COLOR)
 
     if base_image is None:
         continue
 
-    base_image_gray = rgb2gray(base_image)
+    # Resize the image to 256x256
+    resized_image = cv2.resize(base_image, (256, 256))
+
+    base_image_gray = rgb2gray(resized_image)
     base_image_gray_cp = cp.asarray(base_image_gray)  # Convert to CuPy array for GPU processing
 
     base_image_fft = cp.fft.fftshift(cp.fft.fft2(base_image_gray_cp))  # GPU-accelerated FFT
@@ -45,7 +45,7 @@ for image_name in train_ai_image_files:
 
     # Apply one random frequency pattern
     pattern_func = random.choice(freq_patterns.patterns)
-    pattern, make_pattern_fft = freq_patterns.apply(img=base_image, required_pattern_fn=pattern_func, return_pattern=True, mode=0)
+    pattern, make_pattern_fft = freq_patterns.apply(img=resized_image, required_pattern_fn=pattern_func, return_pattern=True, mode=0)
 
     if not make_pattern_fft:  # The pattern is already FFT, so apply IFFT
         pattern_cp = cp.asarray(pattern)
@@ -56,8 +56,8 @@ for image_name in train_ai_image_files:
         continue
 
     output_pattern = os.path.join(output_folder, f'{pattern_func.__name__}_pattern_{image_name}')
-    #plt.imsave(output_pattern, pattern, cmap='gray')
-    print(f'Pattern {pattern_func.__name__} saved at: {output_pattern}')
+    # plt.imsave(output_pattern, pattern, cmap='gray')
+ 
 
     pattern_cp = cp.asarray(pattern)  # Convert to CuPy array for GPU processing
     f_pattern = cp.fft.fftshift(cp.fft.fft2(pattern_cp))  # GPU-accelerated FFT
@@ -68,16 +68,16 @@ for image_name in train_ai_image_files:
     f_pattern_normalized_np = cp.asnumpy(f_pattern_normalized)  # Convert back to NumPy array for saving
 
     output_f_pattern = os.path.join(output_folder, f'{pattern_func.__name__}_pattern_fft_{image_name}')
-    #plt.imsave(output_f_pattern, f_pattern_normalized_np, cmap='viridis')
-    print(f'FFT of pattern {pattern_func.__name__} saved at: {output_f_pattern}')
+    # plt.imsave(output_f_pattern, f_pattern_normalized_np, cmap='viridis')
+    
 
-    image_with_pattern = freq_patterns.apply(img=base_image, required_pattern_fn=pattern_func, return_pattern=False, mode=0)
+    image_with_pattern = freq_patterns.apply(img=resized_image, required_pattern_fn=pattern_func, return_pattern=False, mode=0)
     image_with_pattern = image_with_pattern.astype(np.uint8)
     image_with_pattern_rgb = cv2.cvtColor(image_with_pattern, cv2.COLOR_BGR2RGB)
 
     output_path_image_with_pattern = os.path.join(output_folder, f'{pattern_func.__name__}_image_with_pattern_{image_name}')
-    #plt.imsave(output_path_image_with_pattern, image_with_pattern_rgb)
-    print(f'Image with pattern {pattern_func.__name__} saved at: {output_path_image_with_pattern}')
+    # plt.imsave(output_path_image_with_pattern, image_with_pattern_rgb)
+    
 
     gray_image_with_pattern = rgb2gray(image_with_pattern)
     gray_image_with_pattern_cp = cp.asarray(gray_image_with_pattern)  # Convert to CuPy array for GPU processing
